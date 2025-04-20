@@ -393,9 +393,10 @@ if __name__ == '__main__':
     conventions = OpenXRConventions()
     featuresPat = '.*'
     extensionsPat = makeREstring(layer_apis.extensions_to_search)
-
-    registry.setGenerator(DispatchGenCppOutputGenerator(diagFile=None))
-    registry.apiGen(AutomaticSourceGeneratorOptions(
+    diagFile = open('gen_cpp.log','w')
+    generator = DispatchGenCppOutputGenerator(diagFile=diagFile)
+    registry.setGenerator(generator)
+    registry.genOpts = AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'dispatch.gen.cpp',
             directory         = cur_dir,
@@ -406,10 +407,16 @@ if __name__ == '__main__':
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = extensionsPat))
-
-    registry.setGenerator(DispatchGenHOutputGenerator(diagFile=None))
-    registry.apiGen(AutomaticSourceGeneratorOptions(
+            emitExtensions    = extensionsPat,)
+    registry.apiGen()
+    diagFile.close()
+    registry.apiReset()
+    diagFile = open('gen_h.log','w')
+    generator = DispatchGenHOutputGenerator(diagFile=diagFile)
+    
+    generator.max_extension_name_length = 64
+    registry.setGenerator(generator)
+    registry.genOpts = AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'dispatch.gen.h',
             directory         = cur_dir,
@@ -420,4 +427,6 @@ if __name__ == '__main__':
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = extensionsPat))
+            emitExtensions    = extensionsPat)
+    registry.apiGen()
+    diagFile.close()
