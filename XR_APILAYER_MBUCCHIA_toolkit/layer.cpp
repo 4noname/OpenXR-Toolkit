@@ -316,7 +316,7 @@ namespace {
             }
 
             // For eye tracking, we try to use the Omnicept runtime if it's available.
-            std::unique_ptr<HP::Omnicept::Client> omniceptClient;
+            /*std::unique_ptr<HP::Omnicept::Client> omniceptClient;
             if (utilities::IsServiceRunning("HP Omnicept")) {
                 try {
                     HP::Omnicept::Client::StateCallback_T stateCallback = [&](const HP::Omnicept::Client::State state) {
@@ -347,7 +347,7 @@ namespace {
                 } catch (std::exception& e) {
                     Log("Could not connect to Omnicept runtime: %s\n", e.what());
                 }
-            }
+            }*/
 
             // ...and the Pimax eye tracker if available.
             {
@@ -375,9 +375,9 @@ namespace {
 
             // TODO: If Foveated Rendering is disabled, maybe do not initialize the eye tracker?
             if (m_configManager->getValue(config::SettingEyeTrackingEnabled)) {
-                if (omniceptClient) {
+                /*if (omniceptClient) {
                     m_eyeTracker = input::CreateOmniceptEyeTracker(*this, m_configManager, std::move(omniceptClient));
-                } else if (m_hasPimaxEyeTracker) {
+                } else*/ if (m_hasPimaxEyeTracker) {
                     m_eyeTracker = input::CreatePimaxEyeTracker(*this, m_configManager);
                 } else if (hasEyeTrackerFB) {
                     m_eyeTracker = input::CreateEyeTrackerFB(*this, m_configManager);
