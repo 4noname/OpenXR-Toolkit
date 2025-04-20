@@ -26,6 +26,7 @@
 #include "interfaces.h"
 #include "layer.h"
 #include "log.h"
+#include <array>
 
 namespace {
 
@@ -779,11 +780,11 @@ namespace {
 
             std::unique_lock lock(m_cacheLock);
 
-            auto& cache = m_cachedHandJointsPoses[baseSpace.value_or(m_referenceSpace)][side];
+            std::deque<CacheEntry> cache = m_cachedHandJointsPoses[baseSpace.value_or(m_referenceSpace)][side];
 
             // Search for a entry in the cache.
             int32_t closestIndex = -1;
-            auto insertIt = cache.begin();
+            std::deque<CacheEntry>::iterator insertIt = cache.begin();
             XrTime closestTimeDelta = INT64_MAX;
             for (uint32_t i = 0; i < cache.size(); i++) {
                 const auto t = cache[i].first;
@@ -801,7 +802,7 @@ namespace {
             }
 
             if (closestIndex != -1 && closestTimeDelta < GracePeriod) {
-                return cache[closestIndex].second;
+                return cache[closestIndex].second.data();
             }
 
             // Create a new entry.
@@ -814,7 +815,7 @@ namespace {
                 CacheEntry entry;
                 XrHandJointLocationsEXT locations{XR_TYPE_HAND_JOINT_LOCATIONS_EXT, nullptr};
                 locations.jointCount = XR_HAND_JOINT_COUNT_EXT;
-                locations.jointLocations = entry.second;
+                locations.jointLocations = (entry.second).data();
                 entry.first = time;
 
                 CHECK_HRCMD(m_openXR.xrLocateHandJointsEXT(m_handTracker[side], &locateInfo, &locations));
@@ -823,7 +824,9 @@ namespace {
                 } else {
                     m_gesturesState.numTrackingLosses[side]++;
                 }
-                return cache.emplace(insertIt, entry)->second;
+                
+                std::deque<CacheEntry>::iterator ret = cache.emplace(insertIt, entry);
+                return ret->second.data();
             }
         }
 
@@ -1045,7 +1048,7 @@ namespace {
         bool m_evaluateHapticsGesture{false};
         XrTime m_lastKeepalive{0};
 
-        using CacheEntry = std::pair<XrTime, XrHandJointLocationEXT[XR_HAND_JOINT_COUNT_EXT]>;
+        using CacheEntry = std::pair<XrTime, std::array<XrHandJointLocationEXT, XR_HAND_JOINT_COUNT_EXT>>;
         mutable std::map<XrSpace, std::deque<CacheEntry>[HandCount]> m_cachedHandJointsPoses;
         mutable std::mutex m_cacheLock;
         mutable std::optional<XrSpace> m_preferredBaseSpace;

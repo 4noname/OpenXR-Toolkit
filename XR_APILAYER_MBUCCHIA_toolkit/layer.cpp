@@ -29,6 +29,7 @@
 #include "interfaces.h"
 #include "layer.h"
 #include "log.h"
+#include <future>
 
 namespace {
 
@@ -403,6 +404,7 @@ namespace {
         }
 
         ~OpenXrLayer() override {
+             
             if (m_configManager) {
                 m_configManager->setActiveSession("");
             }
@@ -1247,16 +1249,18 @@ namespace {
                 return XR_ERROR_VALIDATION_FAILURE;
             }
 
+            const char *path = getPath(suggestedBindings->interactionProfile).c_str();
             TraceLoggingWrite(g_traceProvider,
                               "xrSuggestInteractionProfileBindings",
                               TLPArg(instance, "Instance"),
-                              TLArg(getPath(suggestedBindings->interactionProfile).c_str(), "InteractionProfile"));
+                              TLArg(path, "InteractionProfile"));
 
             for (uint32_t i = 0; i < suggestedBindings->countSuggestedBindings; i++) {
+                path = getPath(suggestedBindings->suggestedBindings[i].binding).c_str();
                 TraceLoggingWrite(g_traceProvider,
                                   "xrSuggestInteractionProfileBindings",
                                   TLPArg(suggestedBindings->suggestedBindings[i].action, "Action"),
-                                  TLArg(getPath(suggestedBindings->suggestedBindings[i].binding).c_str(), "Path"));
+                                  TLArg(path, "Path"));
             }
 
             if (m_configManager->getValue(config::SettingEyeDebugWithController)) {
@@ -1324,9 +1328,10 @@ namespace {
                               TLArg(createInfo->localizedActionName, "LocalizedName"),
                               TLArg(xr::ToCString(createInfo->actionType), "Type"));
             for (uint32_t i = 0; i < createInfo->countSubactionPaths; i++) {
+                const char* path = getPath(createInfo->subactionPaths[i]).c_str();
                 TraceLoggingWrite(g_traceProvider,
                                   "xrCreateAction",
-                                  TLArg(getPath(createInfo->subactionPaths[i]).c_str(), "SubactionPath"));
+                                  TLArg(path, "SubactionPath"));
             }
 
             const XrResult result = OpenXrApi::xrCreateAction(actionSet, createInfo, action);
@@ -1358,11 +1363,12 @@ namespace {
                 return XR_ERROR_VALIDATION_FAILURE;
             }
 
+            const char* path = getPath(createInfo->subactionPath).c_str();
             TraceLoggingWrite(g_traceProvider,
                               "xrCreateActionSpace",
                               TLPArg(session, "Session"),
                               TLPArg(createInfo->action, "Action"),
-                              TLArg(getPath(createInfo->subactionPath).c_str(), "SubactionPath"),
+                              TLArg(path, "SubactionPath"),
                               TLArg(xr::ToString(createInfo->poseInActionSpace).c_str(), "PoseInActionSpace"));
 
             const XrResult result = OpenXrApi::xrCreateActionSpace(session, createInfo, space);
@@ -1562,15 +1568,16 @@ namespace {
                 return XR_ERROR_VALIDATION_FAILURE;
             }
 
+            const char* path = getPath(topLevelUserPath).c_str();
             TraceLoggingWrite(g_traceProvider,
                               "xrGetCurrentInteractionProfile",
                               TLPArg(session, "Session"),
-                              TLArg(getPath(topLevelUserPath).c_str(), "TopLevelUserPath"));
+                              TLArg(path, "TopLevelUserPath"));
 
-            std::string path = topLevelUserPath != XR_NULL_PATH ? getPath(topLevelUserPath) : "";
+            std::string s_path = topLevelUserPath != XR_NULL_PATH ? getPath(topLevelUserPath) : "";
             XrResult result = XR_ERROR_RUNTIME_FAILURE;
             if (m_handTracker && isVrSession(session) &&
-                (path.empty() || path == "/user/hand/left" || path == "/user/hand/right") &&
+                (s_path.empty() || s_path == "/user/hand/left" || s_path == "/user/hand/right") &&
                 interactionProfile->type == XR_TYPE_INTERACTION_PROFILE_STATE) {
                 // Return our emulated interaction profile for the hands.
                 interactionProfile->interactionProfile = m_handTracker->getInteractionProfile();
@@ -1580,9 +1587,10 @@ namespace {
             }
 
             if (XR_SUCCEEDED(result)) {
+                const char* path = getPath(interactionProfile->interactionProfile).c_str();
                 TraceLoggingWrite(g_traceProvider,
                                   "xrGetCurrentInteractionProfile",
-                                  TLArg(getPath(interactionProfile->interactionProfile).c_str(), "InteractionProfile"));
+                                  TLArg(path, "InteractionProfile"));
             }
 
             return result;
@@ -1871,10 +1879,11 @@ namespace {
 
             TraceLoggingWrite(g_traceProvider, "xrSyncActions", TLPArg(session, "Session"));
             for (uint32_t i = 0; i < syncInfo->countActiveActionSets; i++) {
+                const char* path = getPath(syncInfo->activeActionSets[i].subactionPath).c_str();
                 TraceLoggingWrite(g_traceProvider,
                                   "xrSyncActions",
                                   TLPArg(syncInfo->activeActionSets[i].actionSet, "ActionSet"),
-                                  TLArg(getPath(syncInfo->activeActionSets[i].subactionPath).c_str(), "SubactionPath"));
+                                  TLArg(path, "SubactionPath"));
             }
 
             XrActionsSyncInfo chainSyncInfo = *syncInfo;
@@ -1917,11 +1926,12 @@ namespace {
                 return XR_ERROR_VALIDATION_FAILURE;
             }
 
+            const char* path = getPath(getInfo->subactionPath).c_str();
             TraceLoggingWrite(g_traceProvider,
                               "xrGetActionStateBoolean",
                               TLPArg(session, "Session"),
                               TLPArg(getInfo->action, "Action"),
-                              TLArg(getPath(getInfo->subactionPath).c_str(), "SubactionPath"));
+                              TLArg(path, "SubactionPath"));
 
             if (m_handTracker && isVrSession(session) && getInfo->type == XR_TYPE_ACTION_STATE_GET_INFO &&
                 state->type == XR_TYPE_ACTION_STATE_BOOLEAN) {
@@ -1951,11 +1961,12 @@ namespace {
                 return XR_ERROR_VALIDATION_FAILURE;
             }
 
+            const char* path = getPath(getInfo->subactionPath).c_str();
             TraceLoggingWrite(g_traceProvider,
                               "xrGetActionStateFloat",
                               TLPArg(session, "Session"),
                               TLPArg(getInfo->action, "Action"),
-                              TLArg(getPath(getInfo->subactionPath).c_str(), "SubactionPath"));
+                              TLArg(path, "SubactionPath"));
 
             if (m_handTracker && isVrSession(session) && getInfo->type == XR_TYPE_ACTION_STATE_GET_INFO &&
                 state->type == XR_TYPE_ACTION_STATE_FLOAT) {
@@ -1985,11 +1996,12 @@ namespace {
                 return XR_ERROR_VALIDATION_FAILURE;
             }
 
+            const char* path = getPath(getInfo->subactionPath).c_str();
             TraceLoggingWrite(g_traceProvider,
                               "xrGetActionStatePose",
                               TLPArg(session, "Session"),
                               TLPArg(getInfo->action, "Action"),
-                              TLArg(getPath(getInfo->subactionPath).c_str(), "SubactionPath"));
+                              TLArg(path, "SubactionPath"));
 
             if (m_handTracker && isVrSession(session) && getInfo->type == XR_TYPE_ACTION_STATE_GET_INFO &&
                 state->type == XR_TYPE_ACTION_STATE_POSE) {
@@ -2026,11 +2038,12 @@ namespace {
                 return XR_ERROR_VALIDATION_FAILURE;
             }
 
+            const char* path = getPath(hapticActionInfo->subactionPath).c_str();
             TraceLoggingWrite(g_traceProvider,
                               "xrApplyHapticFeedback",
                               TLPArg(session, "Session"),
                               TLPArg(hapticActionInfo->action, "Action"),
-                              TLArg(getPath(hapticActionInfo->subactionPath).c_str(), "SubactionPath"));
+                              TLArg(path, "SubactionPath"));
 
             if (m_handTracker && isVrSession(session) && hapticActionInfo->type == XR_TYPE_HAPTIC_ACTION_INFO &&
                 hapticFeedback->type == XR_TYPE_HAPTIC_VIBRATION) {
@@ -2062,11 +2075,12 @@ namespace {
                 return XR_ERROR_VALIDATION_FAILURE;
             }
 
+            const char* path = getPath(hapticActionInfo->subactionPath).c_str();
             TraceLoggingWrite(g_traceProvider,
                               "xrStopHapticFeedback",
                               TLPArg(session, "Session"),
                               TLPArg(hapticActionInfo->action, "Action"),
-                              TLArg(getPath(hapticActionInfo->subactionPath).c_str(), "SubactionPath"));
+                              TLArg(path, "SubactionPath"));
 
             if (m_handTracker && isVrSession(session) && hapticActionInfo->type == XR_TYPE_HAPTIC_ACTION_INFO) {
                 m_performanceCounters.handTrackingTimer->start();
