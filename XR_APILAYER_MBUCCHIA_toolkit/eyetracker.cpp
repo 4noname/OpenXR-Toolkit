@@ -35,7 +35,7 @@ namespace {
     using namespace toolkit::utilities;
     using namespace toolkit::log;
 
-    using namespace HP::Omnicept;
+    //using namespace HP::Omnicept;
 
     using namespace xr::math;
 
@@ -379,59 +379,59 @@ namespace {
         XrSpace m_eyeSpace{XR_NULL_HANDLE};
     };
 
-    class OmniceptEyeTracker : public EyeTrackerBase {
-      public:
-        OmniceptEyeTracker(OpenXrApi& openXR,
-                           std::shared_ptr<IConfigManager> configManager,
-                           std::unique_ptr<Client> omniceptClient)
-            : EyeTrackerBase(openXR, configManager), m_omniceptClient(std::move(omniceptClient)) {
-            std::shared_ptr<Abi::SubscriptionList> subList = Abi::SubscriptionList::GetSubscriptionListToNone();
+    //class OmniceptEyeTracker : public EyeTrackerBase {
+    //  public:
+    //    OmniceptEyeTracker(OpenXrApi& openXR,
+    //                       std::shared_ptr<IConfigManager> configManager,
+    //                       std::unique_ptr<Client> omniceptClient)
+    //        : EyeTrackerBase(openXR, configManager), m_omniceptClient(std::move(omniceptClient)) {
+    //        std::shared_ptr<Abi::SubscriptionList> subList = Abi::SubscriptionList::GetSubscriptionListToNone();
 
-            Abi::Subscription eyeTrackingSub = Abi::Subscription::generateSubscriptionForDomainType<Abi::EyeTracking>();
-            subList->getSubscriptions().push_back(eyeTrackingSub);
+    //        Abi::Subscription eyeTrackingSub = Abi::Subscription::generateSubscriptionForDomainType<Abi::EyeTracking>();
+    //        subList->getSubscriptions().push_back(eyeTrackingSub);
 
-            m_omniceptClient->setSubscriptions(*subList);
-        }
+    //        m_omniceptClient->setSubscriptions(*subList);
+    //    }
 
-        ~OmniceptEyeTracker() override {
-            endSession();
-        }
+    //    ~OmniceptEyeTracker() override {
+    //        endSession();
+    //    }
 
-        void beginSession(XrSession session) override {
-            EyeTrackerBase::beginSession(session);
+    //    void beginSession(XrSession session) override {
+    //        EyeTrackerBase::beginSession(session);
 
-            m_omniceptClient->startClient();
-        }
+    //        m_omniceptClient->startClient();
+    //    }
 
-        void endSession() override {
-            if (m_omniceptClient) {
-                // TODO: This is occasionally causing a crash... Disabled for now.
-                // m_omniceptClient->pauseClient();
-            }
+    //    void endSession() override {
+    //        if (m_omniceptClient) {
+    //            // TODO: This is occasionally causing a crash... Disabled for now.
+    //            // m_omniceptClient->pauseClient();
+    //        }
 
-            EyeTrackerBase::endSession();
-        }
+    //        EyeTrackerBase::endSession();
+    //    }
 
-        bool getEyeGaze(XrVector3f& projectedPoint) const override {
-            Client::LastValueCached<Abi::EyeTracking> lvc = m_omniceptClient->getLastData<Abi::EyeTracking>();
-            if (!lvc.valid || lvc.data.combinedGazeConfidence < 0.5f) {
-                return false;
-            }
+    //    bool getEyeGaze(XrVector3f& projectedPoint) const override {
+    //        Client::LastValueCached<Abi::EyeTracking> lvc = m_omniceptClient->getLastData<Abi::EyeTracking>();
+    //        if (!lvc.valid || lvc.data.combinedGazeConfidence < 0.5f) {
+    //            return false;
+    //        }
 
-            projectedPoint.x = -lvc.data.combinedGaze.x;
-            projectedPoint.y = lvc.data.combinedGaze.y;
-            projectedPoint.z = -lvc.data.combinedGaze.z;
+    //        projectedPoint.x = -lvc.data.combinedGaze.x;
+    //        projectedPoint.y = lvc.data.combinedGaze.y;
+    //        projectedPoint.z = -lvc.data.combinedGaze.z;
 
-            return true;
-        }
+    //        return true;
+    //    }
 
-        bool isProjectionDistanceSupported() const {
-            return false;
-        }
+    //    bool isProjectionDistanceSupported() const {
+    //        return false;
+    //    }
 
-      private:
-        const std::unique_ptr<Client> m_omniceptClient;
-    };
+    //  private:
+    //    const std::unique_ptr<Client> m_omniceptClient;
+    //};
 
     class PimaxEyeTracker : public EyeTrackerBase {
       public:
@@ -551,12 +551,12 @@ namespace toolkit::input {
         return std::make_shared<OpenXrFBEyeTracker>(openXR, configManager);
     }
 
-    std::shared_ptr<IEyeTracker>
+    /*std::shared_ptr<IEyeTracker>
     CreateOmniceptEyeTracker(toolkit::OpenXrApi& openXR,
                              std::shared_ptr<toolkit::config::IConfigManager> configManager,
                              std::unique_ptr<Client> omniceptClient) {
         return std::make_shared<OmniceptEyeTracker>(openXR, configManager, std::move(omniceptClient));
-    }
+    }*/
 
     std::shared_ptr<IEyeTracker> CreatePimaxEyeTracker(toolkit::OpenXrApi& openXR,
                                                        std::shared_ptr<toolkit::config::IConfigManager> configManager) {

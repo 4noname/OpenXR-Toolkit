@@ -148,7 +148,7 @@ constexpr inline T roundDown(T value, uint32_t pad) noexcept {
 #include <nvapi.h>
 
 // Omnicept SDK.
-#include <omnicept/Glia.h>
+//#include <omnicept/Glia.h>
 
 // Pimax eye tracker SDK.
 #include <aSeeVRClient.h>
